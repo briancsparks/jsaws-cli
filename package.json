@@ -1,0 +1,22 @@
+{
+  "name": "@sg0/jsaws-cli",
+  "version": "1.0.0",
+  "description": "A cli for AWS, but introspecting.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/briancsparks/jsaws-cli.git"
+  },
+  "author": "Brian C Sparks <briancsparks@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/briancsparks/jsaws-cli/issues"
+  },
+  "homepage": "https://github.com/briancsparks/jsaws-cli#readme",
+  "dependencies": {
+    "sg-clihelp": "^1.0.69"
+  }
+}
