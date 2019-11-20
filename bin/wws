@@ -2,7 +2,6 @@
 
 const {sg,fs,path,os,util,sh,die,dieAsync,grepLines,include,from,startupDone,runTopAsync,exec,execa,execz,exec_ez,find,grep,ls,mkdir,SgDir,test,tempdir,inspect} = require('sg-clihelp').all();
 const AWS       = require('aws-sdk');
-const libRedis  = require('redis');
 
 const ARGV      = sg.ARGV();
 const ENV       = sg.ENV();
@@ -11,7 +10,7 @@ const ENV       = sg.ENV();
 if (require.main === module) {
   runTopAsync(main).then(function(err, data) {
     console.log(`wws`, {err, data});
-    var i=2;5
+    var i=2;
   });
 }
 
