@@ -9,10 +9,8 @@ const ENV       = sg.ENV();
 
 // Do not be too eager if we are just being required
 if (require.main === module) {
-  runTopAsync(main).then(function(err, data) {
-    console.log(`wws`, {err, data});
-    var i=2;5
-  });
+  var x = runTopAsync(main);
+  console.log(`wws`, {x});
 }
 
 //-----------------------------------------------------------------------------------------------------------------------------
@@ -21,16 +19,14 @@ async function main() {
   const bar   = ENV.at('BAR');
 
   var   [serviceName, command]    = ARGV._;
+  // console.log(`debug`, serviceName, command, ARGV);
 
-console.log(`debug`, command, serviceName, ARGV);
-  var service                     = new AWS[serviceName]();
+  const service   = new AWS[serviceName]({region:'us-east-1'});
+  const res       = service[command]({}).promise();
 
-  var ci_promise = service[command]();
+  const data      = await res;
 
-
-
-  var ci = await ci_promise;
-console.log(`debug`, command, serviceName, ARGV);
+  console.log(`debug`, serviceName, command, data);
 
 }
 

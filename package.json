@@ -17,6 +17,9 @@
   },
   "homepage": "https://github.com/briancsparks/jsaws-cli#readme",
   "dependencies": {
+    "aws-sdk": "^2.575.0",
+    "redis": "^2.8.0",
+    "sg-argv": "^1.0.70",
     "sg-clihelp": "^1.0.69"
   }
 }
