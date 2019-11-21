@@ -1,20 +1,53 @@
 #!/usr/env node
 /* eslint-disable valid-jsdoc */
 
-const sg1             = require('sg-clihelp');
-const sg0             = sg1.merge(sg1, require('sg-flow'));
+const sg1                     = require('sg-clihelp');
+const sg0                     = sg1.merge(sg1, require('sg-flow'), require('sg-diag'));
 const {sg,fs,path,os,util,sh,die,dieAsync,grepLines,include,from,startupDone,runTopAsync,exec,execa,execz,exec_ez,find,grep,ls,mkdir,SgDir,test,tempdir,inspect} = sg1.all();
-const {_}             = sg0;
-const AWS             = require('aws-sdk');
-const localRedis      = require('./lib/redis');
+const {_}                     = sg0;
+const quickMerge              = require('quick-merge');
+const AWS                     = require('aws-sdk');
+const localRedis              = require('./lib/redis');
+const DIAG                    = sg0.DIAG(module);
 
-const ARGV            = sg.ARGV();
-const ENV             = sg.ENV();
+const qm                      = quickMerge.quickMergeImmutable;
+
+const ARGV                    = sg.ARGV();
+const ENV                     = sg.ENV();
+const diag                    = DIAG.dg;
+
+
+var libCommands = {};
+
 
 //-----------------------------------------------------------------------------------------------------------------------------
-function main(callback) {
+/**
+ * Main.
+ */
+function main(...args) {
 
   var   [serviceName, command]    = ARGV._;
+
+  if (!command) {
+    [serviceName, command] = [command, serviceName];
+  }
+
+  const commandFn = libCommands[command];
+  if (commandFn) {
+    return commandFn(serviceName, command, ...args);
+  }
+
+  // All else, try aws
+  return libCommands.aws(serviceName, command, ...args);
+}
+
+
+// ----------------------------------------------------------------------------------------------------------------------------
+libCommands.aws =
+libCommands.EC2 = function(serviceName, command, callback) {
+
+  // var   ttl = 10 * 60;     /* 10 min */
+  var   ttl = 3;              /* 3 sec */
 
   const key = `jsaws:${serviceName}:${command}`;
   return getCache(key, util.callbackify(async function getFromAws() {
@@ -24,9 +57,15 @@ function main(callback) {
     const res       = service[command]({}).promise();
 
     var   data      = await res;
-    data            = sg.safeJSONStringify(data);
+    // data            = sg.safeJSONStringify(data);
 
-    return data;
+    // return data;
+
+    const bob = new AwsDataBlob();
+    bob.parse(data);
+
+    const value = bob.getData();
+    return value;
 
   }), function(err, data) {
     // console.log(`debug`, serviceName, command, data);
@@ -36,7 +75,7 @@ function main(callback) {
 
     const value = bob.getData();
 
-    console.log(`bob`, value);
+    // console.log(`bob`, value);
     return callback(null, value);
   });
 
@@ -45,31 +84,48 @@ function main(callback) {
   function getCache(key, expensiveOp, callback) {
     var [redis, close] = localRedis.connection();
 
-    return redis.get(key, function(err, cacheData) {
+    return redis.GET(key, function(err, cacheData_) {       // ===========================================      This is where data was just read out of redis
+      var   cacheData = cacheData_;
 
       if (err)  { return fin(err); }
 
-      if (sg0.ok(err,cacheData)) {
-        console.log(`Retrieved key: (${key}) from cache`, {err, cacheData});
+      if (sg0.ok(err, cacheData_)) {
+        cacheData = sg.safeJSONParse(cacheData_) || cacheData_;
+        diag.v(`Retrieved key: (${key}) from cache`, smlog({err, cacheData}));
         return fin(null, cacheData);
       }
-      console.log(`CacheMiss on key: (${key}) from cache`, {err, cacheData});
+      diag.v(`CacheMiss on key: (${key}) from cache`, {err, cacheData});
 
       return expensiveOp(function(err, data) {
         if (err)  { return fin(err); }
 
         return storeCache(key, data, function(err, storeRectipt) {
-          console.log(`Stored key: (${key}) in cache`, {err, storeRectipt});
           if (err) { return fin(err); }
-          return callback(err, data, storeRectipt);
+          return fin(err, data, storeRectipt);
         });
       });
     });
 
     //===========================================================================================================================
-    function storeCache(key, data, storeCacheCallback) {
-      return redis.set(key, data, function(err, result) {
-        console.log(key, {data, err, result});
+    function storeCache(key, data_, storeCacheCallback) {
+
+      // Stringify the payload
+      var data;
+      if (typeof data_ === 'string') {
+        data = `{"__Just__":"${data_}"}`;
+      } else {
+        data = sg.safeJSONStringify(data_);
+      }
+
+      // Insert `data` at the `key`
+      return redis.SET(key, data, function(err, result) {           // ===========================================      This is where data gets put into redis
+        diag.v(`Stored key: (${key}) in cache`, smlog({data, err, result}));
+
+        // Now, set the TTL on the key, so it doesnt stick around forever
+        redis.EXPIRE(key, /*ttl=*/40, function(err, result) {
+          // Report the results, but do not block
+          diag.v(`Stored key: (${key}) in cache`, {err, result});
+        });
 
         return storeCacheCallback(err, result);
       });
@@ -80,6 +136,44 @@ function main(callback) {
       return callback(...args);
     }
   }
+};
+
+// ------------------------------------------------------------------------------------------------------------------
+function smlog(args) {
+  return sg.reduce(args, {}, (m,v,k) => {
+    return sg.kv(m,k, smlogitem(v));
+  });
+}
+
+function smlogitem(item, maxLen =256) {
+  if (typeof item === 'string') { return item.substr(0, maxLen-1); }
+
+  var s;
+
+  // Is it an Array?
+  if (Array.isArray(item)) {
+
+    // If the stringification is long, maybe trim it
+    s = s || sg.safeJSONStringify(item);
+    if (s.length > maxLen) {
+
+      // Too long?  Convert to [item[0], '...plus 500000 more']
+      if (item.length > 2) {
+        return smlogitem([item[0], `...plus ${item.length -1} more`]);
+      }
+
+      // If its still too long, just say how many items
+      return [`${item.length} items`];
+    }
+  }
+
+  // An object.  Truncate to maxLen
+  if (sg.isObject(item)) {
+    s = s || sg.safeJSONStringify(item);
+    if (s.length > maxLen)                           { return s.substr(0, maxLen-1); }
+  }
+
+  return item;
 }
 
 // ------------------------------------------------------------------------------------------------------------------
@@ -104,7 +198,10 @@ function runTopSync(main, name='main') {
     }
 
     const message = sg.extract(result ||{}, 'finalMessage');
-    ARGV.i(`function ${name} finished:`, {result}, message);
+    ARGV.v(`function ${name} finished:`, {result}, message);
+
+    console.log(sg.safeJSONStringify(mainResult, null, null));
+    // console.log([err, mainResult]);
   });
 
   function announceError(err) {
@@ -126,7 +223,7 @@ async function mainXA() {
 
   var [redis, close] = localRedis.connection();
 
-  redis.get(`jsaws:${serviceName}:${command}`, function(err, data) {
+  redis.GET(`jsaws:${serviceName}:${command}`, function(err, data) {
     console.log(`redis-get:jsaws:${serviceName}:${command}`, {err, data});
   });
 
@@ -137,7 +234,7 @@ async function mainXA() {
 
   data            = sg.safeJSONStringify(data);
 
-  redis.set(`jsaws:${serviceName}:${command}`, data, function(err, result) {
+  redis.SET(`jsaws:${serviceName}:${command}`, data, function(err, result) {
     console.log(`redis-set:jsaws:${serviceName}:${command}`, {data, err, result});
   });
 
@@ -202,6 +299,8 @@ AwsDataBlob.prototype.parse = function(blob) {
 
   self.data = self.data || [];
 
+// console.log(`parse`, {blob_type: typeof blob, blob_keys: blob && typeof blob !== 'string' && Object.keys(blob)});
+
   if (typeof blob === 'string') {
     blob = sg.safeJSONParse(blob) || {__just__: blob};
   }
@@ -213,18 +312,15 @@ AwsDataBlob.prototype.parse = function(blob) {
   var key     = sg.firstKey(blob);
   var value   = blob[key];
 
-  return {[key]: _.groupBy(value, 'InstanceId')};
+  if (Array.isArray(value)) {
+    value = value.map(v => this.normalize(v));
+  }
 
-  // if (Array.isArray(value)) {
-  //   self.data = [...self.data, ...blob];
-  //   return self.data;
-  // }
+  // this.data = qm(this.data, {[key]: _.groupBy(value, 'InstanceId')});
+  this.data = qm(this.data, {[key]: value});
 
-  // console.warn(`cannot parse`);
+  return this.data;
 
-  // _.each(blob, (value0, key0) => {
-  //   self.data[key0] = self.data[key0] ||
-  // });
 
   function outerParse(outerBlob) {
     var instanceListList = outerBlob.Reservations.map(r => r.Instances);
@@ -235,6 +331,35 @@ AwsDataBlob.prototype.parse = function(blob) {
     return self.parse({Instances: instanceList});
   }
 };
+
+//-----------------------------------------------------------------------------------------------------------------------------
+AwsDataBlob.prototype.normalize = function(item_) {
+  var item = {...item_};
+
+  if (item.Tags) {
+    item.tags = sg.reduce(item.Tags, {}, (m,v) => {
+      item = {...item, ...mkTagMap(v)};
+
+      // item[`tag_${v.Key.toLowerCase().replace(/[^a-zA-Z0-9_]/g, '_')}`] = v.Value;
+      return sg.kv(m, v.Key, v.Value);
+    });
+  }
+
+  return item;
+};
+
+function mkTagMap(v) {
+  var key = v.Key.toLowerCase().replace(/[^a-zA-Z0-9_]/g, '_');
+
+  var result = sg.kv({}, `tag_${key}`, v.Value);
+
+  const arr = sg.compact(v.Value.split(':'));
+  result = sg.reduce(arr, result, (m,v) => {
+    return sg.kv(m, `tag_${key}__${v}`, true);
+  });
+
+  return result;
+}
 
 //-----------------------------------------------------------------------------------------------------------------------------
 AwsDataBlob.prototype.parseX = function(blob) {
