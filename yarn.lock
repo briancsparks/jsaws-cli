@@ -2,6 +2,33 @@
 # yarn lockfile v1
 
 
+"@sg0/sg-aws-json@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@sg0/sg-aws-json/-/sg-aws-json-1.0.1.tgz#54b6fb46a0a3f37f66946bd4bfe486f31b1e7f77"
+  integrity sha512-TsAdw8cpdNkMec8uDbIQl1ChxhDioMg57QdV2fDlWXjyemLM4MW0D5RuUjp8UDtaYeKKd+MUPhH9JKxrSYg7dA==
+  dependencies:
+    quick-merge "^1.0.20"
+    sg0 "^1.0.51"
+
+"@sg0/sg-cache-redis@^1.0.17":
+  version "1.0.17"
+  resolved "https://registry.yarnpkg.com/@sg0/sg-cache-redis/-/sg-cache-redis-1.0.17.tgz#d6fc58d7df5500ce9511c07c446b951cd4ff615d"
+  integrity sha512-FZ5n6WvjUW0T8/41f38rvWMRbZSDi5JcsaD8qUbuzJENcR/Xi9upGIjNM+RwGq0BmsGfzK0vzRNhSifwfA9nIA==
+  dependencies:
+    "@sg0/sg-smart-value" "^1.0.16"
+    redis "^2.8.0"
+    sg-diag "^1.0.66"
+    sg-env "^1.0.21"
+    sg0 "^1.0.50"
+
+"@sg0/sg-smart-value@^1.0.16":
+  version "1.0.16"
+  resolved "https://registry.yarnpkg.com/@sg0/sg-smart-value/-/sg-smart-value-1.0.16.tgz#cf3bcc211a0bfadc4cdd9ca60a9d022580d0e66c"
+  integrity sha512-98LqB/VX3ej9bbRKpdINTQsofokqlTY7yV5kwk/5lDI28NA7xG20OiN4ePCPecyYIMCTFRYXEH6XNt5IODfz3g==
+  dependencies:
+    minimist "^1.2.0"
+    sg0 "^1.0.50"
+
 "@sg0/sg-smart-value@^1.0.4":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@sg0/sg-smart-value/-/sg-smart-value-1.0.4.tgz#fbf8342eb70401f135c35c7a7e91cbbe409973d8"
@@ -564,6 +591,11 @@ quick-merge@^1.0.17:
   resolved "https://registry.yarnpkg.com/quick-merge/-/quick-merge-1.0.17.tgz#789ba2c7ada95981494e4a09981c03333d09ab06"
   integrity sha512-F0tphl/2y1OSoWvwp6qcms02IPtnlKZm6fbQNAht6bRTMIStNKS6D6R2UAbP9TNmhNIg3+PFx4PpoWWt9LQ/4Q==
 
+quick-merge@^1.0.20:
+  version "1.0.20"
+  resolved "https://registry.yarnpkg.com/quick-merge/-/quick-merge-1.0.20.tgz#6c7c7903c2fb5539bcdc75d01220e40af6e6643d"
+  integrity sha512-XrULfB02iZIqLEYVe1NIHFUpNlEzOk3C+FHKuaFbSRwnnKGr2btSpLrOHK/3qgK6tjjnSDVJ4SK4XAvIt2tSKg==
+
 rechoir@^0.6.2:
   version "0.6.2"
   resolved "https://registry.yarnpkg.com/rechoir/-/rechoir-0.6.2.tgz#85204b54dba82d5742e28c96756ef43af50e3384"
@@ -623,6 +655,14 @@ sg-bits@^1.0.22:
     quick-merge "^1.0.17"
     sg0 "^1.0.39"
 
+sg-bits@^1.0.33:
+  version "1.0.33"
+  resolved "https://registry.yarnpkg.com/sg-bits/-/sg-bits-1.0.33.tgz#2e9099abe88aa98cc2b8610772942d52ef9cd150"
+  integrity sha512-8dCSpQUbUuVBYif3vvv+8M49jE6FYdiv2y9scpXWvy2POf5tvj5PXmxroSWs374vGxs+3Sp8vikf51qYLyM7CQ==
+  dependencies:
+    quick-merge "^1.0.20"
+    sg0 "^1.0.50"
+
 sg-clihelp@^1.0.69:
   version "1.0.69"
   resolved "https://registry.yarnpkg.com/sg-clihelp/-/sg-clihelp-1.0.69.tgz#da8da1755d1a4248ae2df009b27c2af6308ce66e"
@@ -646,6 +686,27 @@ sg-diag@^1.0.54:
     sg-env "^1.0.9"
     sg0 "^1.0.39"
     socket.io-client "^2.2.0"
+
+sg-diag@^1.0.66:
+  version "1.0.66"
+  resolved "https://registry.yarnpkg.com/sg-diag/-/sg-diag-1.0.66.tgz#07e75d359a6174ac0ec9a88c863051e916f48282"
+  integrity sha512-tj3/3NcpKmqoaKwfItZv1Ubwz0AE2S29pLVYh27XoG3zIw/Gq8kC/NRSNYfXO1jURC55BRU6+p2AkdtRtdfVfw==
+  dependencies:
+    ajv "^6.10.2"
+    chalk "^2.4.2"
+    minimist "^1.2.0"
+    quick-merge "^1.0.20"
+    sg-bits "^1.0.33"
+    sg-env "^1.0.21"
+    sg0 "^1.0.50"
+    socket.io-client "^2.2.0"
+
+sg-env@^1.0.21:
+  version "1.0.21"
+  resolved "https://registry.yarnpkg.com/sg-env/-/sg-env-1.0.21.tgz#f618b9a48702139b2c9eb4c7aac613df81f9c8b6"
+  integrity sha512-UxgKC+JFcQz/AbboSzAlAcR5Z9lFgv8Zzmuhps/pORQk4OyFCHzgpbNkPYJmBu3XUIgJchZY+ExYc7/7bR6Naw==
+  dependencies:
+    "@sg0/sg-smart-value" "^1.0.16"
 
 sg-env@^1.0.9:
   version "1.0.9"
@@ -679,6 +740,22 @@ sg0@^1.0.39:
   version "1.0.39"
   resolved "https://registry.yarnpkg.com/sg0/-/sg0-1.0.39.tgz#2bf9cec92f53e1ee5374d7fb224b00f738f46223"
   integrity sha512-YxY4cJmuVQuvvXnoKQydUyS8ORV4FO3dkMIKR2z9t5P8Li16SLLfO0McGJhqKa1lAY9PoE2dV3JKTy50F8yM8g==
+  dependencies:
+    json-stringify-safe "^5.0.1"
+    lodash "^4.17.13"
+
+sg0@^1.0.50:
+  version "1.0.50"
+  resolved "https://registry.yarnpkg.com/sg0/-/sg0-1.0.50.tgz#84c0c41d1e58318328cbc50659db7bf8412acc32"
+  integrity sha512-ryQ3yk+HiFKsXBgkfRdtKwDAmkZU8o+dio1IB2ywghoYmEi9ZVxnI39vof5dyWrh83s8cjcfQEOC5iFQ/8bzOQ==
+  dependencies:
+    json-stringify-safe "^5.0.1"
+    lodash "^4.17.13"
+
+sg0@^1.0.51:
+  version "1.0.51"
+  resolved "https://registry.yarnpkg.com/sg0/-/sg0-1.0.51.tgz#b43faf141f82fb251a58a4c4ace9be5b2cea1b4d"
+  integrity sha512-8WR4DfFbaT3g2BzJAcL/rWrqEv/mmRcnfGd/pnTQu58al0T5nne3zLcHrebFG7yzaMSMmoC/0rPHjAfI4JBDkQ==
   dependencies:
     json-stringify-safe "^5.0.1"
     lodash "^4.17.13"
