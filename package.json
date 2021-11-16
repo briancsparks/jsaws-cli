@@ -19,7 +19,7 @@
   "dependencies": {
     "@sg0/sg-aws-json": "^1.0.1",
     "@sg0/sg-cache-redis": "^1.0.17",
-    "aws-sdk": "^2.575.0",
+    "aws-sdk": "^2.814.0",
     "quick-merge": "^1.0.17",
     "redis": "^2.8.0",
     "sg-argv": "^1.0.70",
